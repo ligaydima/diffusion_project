@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 from sampling import sample_euler, get_timesteps_fm
 import torch
 import numpy as np
-from utils import normalize
+from utils import normalize, get_device
+
 
 def remove_ticks(ax):
     ax.tick_params(
@@ -71,7 +72,7 @@ def visualize_training(model, loss_history, grad_history, log_imgs, sampling_par
     ax['gradient'].set_xlabel('Итерация', fontsize=14)
     ax['gradient'].tick_params(labelsize=13)
 
-    noise = torch.randn_like(log_imgs['clear_images'][:n_pictures_sampling])
+    noise = torch.randn((n_pictures_sampling, log_imgs['images'].shape[1], log_imgs['images'].shape[2], log_imgs['images'].shape[3])).to(get_device())
     remove_ticks(ax['sampling'])
     _, trajectory = sample_euler(model, noise, sampling_params, get_timesteps_fm, save_history=True)
     trajectory = torch.cat(trajectory, dim=0) * 0.5 + 0.5

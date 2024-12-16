@@ -1,6 +1,6 @@
 import torch
 
-from utils import normalize
+from utils import normalize, get_device
 
 
 def get_timesteps_diff(params):
@@ -19,6 +19,7 @@ def sample_euler(model, noise, params, get_timesteps, class_labels=None, save_hi
     num_steps = params['num_steps']
     t_steps = get_timesteps(params)
     x = noise
+
 
     if save_history:
         vis_steps = params['vis_steps']

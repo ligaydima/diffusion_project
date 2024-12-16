@@ -4,6 +4,7 @@ import torch
 from tqdm import tqdm
 from utils import get_grad_norm, get_device
 from vis import visualize_training
+from IPython.display import clear_output
 
 
 def train(model, opt, train_dataloader, loss_fn, n_epochs, sampling_params, checkpoint_dir, eval_every=100,
@@ -22,10 +23,12 @@ def train(model, opt, train_dataloader, loss_fn, n_epochs, sampling_params, chec
                 loss.backward()
                 loss_history.append(loss.item())
                 opt.step()
-                grad_history.append(get_grad_norm(model))
+                grad_history.append(get_grad_norm(model).detach().cpu())
                 if it % eval_every == 0:
                     model.eval()
-                    visualize_training(model, loss_history, log_imgs, sampling_params)
+                    
+                    clear_output(wait=True)
+                    visualize_training(model, loss_history, grad_history, log_imgs, sampling_params)
 
                 if it % save_every == 0:
                     torch.save(model.state_dict(), os.path.join('checkpoints', 'rec_%d.pth' % (it,)))
