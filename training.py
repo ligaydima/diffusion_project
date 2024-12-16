@@ -5,7 +5,7 @@ from tqdm import tqdm
 from utils import get_grad_norm, get_device
 from vis import visualize_training
 from IPython.display import clear_output
-
+import wandb
 
 def train(model, opt, train_dataloader, loss_fn, n_epochs, sampling_params, checkpoint_dir, eval_every=100,
           save_every=1000):
@@ -35,5 +35,6 @@ def train(model, opt, train_dataloader, loss_fn, n_epochs, sampling_params, chec
                 pbar.update(1)
                 pbar.set_description('Loss: %.4g' % loss.item())
                 it += 1
+                wandb.log({"loss": loss_history[-1], "grad_norm": grad_history[-1]})
 
     return model, loss_history, grad_history
