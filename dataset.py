@@ -5,6 +5,8 @@ from torch.utils.data import DataLoader
 CIFAR10_ROOT = './data'
 
 def get_dataloader(batch_size, num_workers=2):
+    import ssl
+    ssl._create_default_https_context = ssl._create_unverified_context
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))  # [-1, 1]
