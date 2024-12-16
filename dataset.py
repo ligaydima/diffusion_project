@@ -4,7 +4,7 @@ from torch.utils.data import DataLoader
 
 CIFAR10_ROOT = './data'
 
-def get_dataloader(batch_size, num_workers=2):
+def get_dataloader(batch_size, num_workers=1):
     import ssl
     ssl._create_default_https_context = ssl._create_unverified_context
     transform = transforms.Compose([
