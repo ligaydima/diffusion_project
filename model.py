@@ -1,5 +1,6 @@
 import torch.nn as nn
 import torch
+import ot
 class FMPrecond(nn.Module):
     def __init__(self, model, error_eps=1e-4):
         super().__init__()
@@ -39,7 +40,26 @@ class FMLoss:
         x_1 = images
         if self.use_OT:
             # TODO OT mode
-            pass
+            x_0_tmp = x_0.unsqueeze(1)
+            x_1_tmp = x_1.unsqueeze(0)
+            cost = ((x_0_tmp - x_1_tmp) ** 2).sum(dim = (2,3,4))
+            b = torch.ones(self.batch_dim) / self.batch_dim
+            # distr = torch.distributions.normal.Normal(torch.zeros([x_0.shape[1], x_0.shape[2], x_0.shape[3]]), torch.tensor())
+            distr = torch.zeros(self.batch_dim)
+            for i in range(self.batch_dim):
+                for j in range(x_0.shape[1]):
+                    for a in range(x_0.shape[2]):
+                        for b in range(x_0.shape[3]):
+                            distr[i] += torch.distributions.normal.Normal(torch.tensor([0.0]), torch.tensor([1.0])).log_prob(x_0[i,j,a,b])
+            distr = torch.nn.Softmax(distr)
+            plan = ot.emd(distr, b, cost)
+            flattened_plan = plan.flatten()
+            sampled_id = torch.multinomial(flattened_plan, num_samples = self.batch_dim).item()
+            row_index = sampled_id // plan.shape[1]
+            col_index = sampled_id % plan.shape[1]
+            x_0 = x_0[row_index]
+            x_1 = x_1[col_index]
+            # pass
         t = self.sample_t(self.batch_dim, device=images.device)[:, None, None, None]
 
         x_t = t * x_0 + (1 - t) * x_1
