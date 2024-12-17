@@ -46,14 +46,16 @@ class FMLoss:
             distr = torch.ones(images.shape[0]).to(images.device) / images.shape[0]
             plan = ot.emd(distr, B, cost)
             flattened_plan = plan.flatten()
-            sampled_id = torch.multinomial(flattened_plan, num_samples = images.shape[0])
+            sampled_id = torch.multinomial(flattened_plan, num_samples = images.shape[0], replacement = True)
             row_index = sampled_id // plan.shape[1]
             col_index = sampled_id % plan.shape[1]
+            print(row_index, col_index)
+            
             x_0 = x_0[row_index]
             x_1 = x_1[col_index]
         t = self.sample_t(images.shape[0], device=images.device)[:, None, None, None]
 
-        x_t = t * x_0 + (1 - t) * x_1
+        x_t = t * x_1 + (1 - t) * x_0
         denoiser_pred = net(x_t, t.flatten())
         loss = ((denoiser_pred - images) ** 2).mean()
         log_imgs = {
