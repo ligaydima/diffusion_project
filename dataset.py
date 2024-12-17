@@ -21,7 +21,10 @@ def get_dataloader(batch_size):
 class ColoredMNIST(datasets.MNIST):
     def __init__(self, **kwargs):
         self.my_transform = kwargs["transform"]
-        kwargs["transform"] = None
+        kwargs["transform"] = transforms.Compose([
+            transforms.Resize((32, 32)),
+            transforms.ToTensor(),
+        ])
         super().__init__(**kwargs)
         self.hues = 360 * torch.rand(super().__len__())
 
@@ -73,8 +76,6 @@ def get_dataloader_mnist(batch_size):
     import ssl
     ssl._create_default_https_context = ssl._create_unverified_context
     transform = transforms.Compose([
-        transforms.Resize((32, 32)),
-        transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))  # [-1, 1]
     ])
     train_dataset = ColoredMNIST(root=MNIST_ROOT, train=True, download=True, transform=transform)
