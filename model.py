@@ -49,7 +49,7 @@ class FMLoss:
             sampled_id = torch.multinomial(flattened_plan, num_samples = images.shape[0], replacement = True)
             row_index = sampled_id // plan.shape[1]
             col_index = sampled_id % plan.shape[1]
-            print(row_index, col_index)
+            # print(row_index, col_index)
             
             x_0 = x_0[row_index]
             x_1 = x_1[col_index]
