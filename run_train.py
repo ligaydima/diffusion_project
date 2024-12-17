@@ -10,7 +10,11 @@ IMG_RES = 32
 
 def run_train(params):
     model = FMPrecond(EDMPrecond(IMG_RES, 3, use_fp16=True)).to(get_device())
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-5)
+    optimizer = None
+    if params['optimizer'] == 'sgd':
+        optimizer = torch.optim.SGD(model.parameters(), lr = params['lr'])
+    else:
+        optimizer = torch.optim.Adam(model.parameters(), lr = params['lr'])
     sampling_params = {
         'device': get_device(),
         'sigma_min': 0.02,
