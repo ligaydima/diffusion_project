@@ -40,7 +40,7 @@ class FMLoss:
         if self.use_OT:
             # TODO OT mode
             pass
-        t = self.sample_t(self.batch_dim, device=images.device)[:, None, None, None]
+        t = self.sample_t(images.shape[0], device=images.device)[:, None, None, None]
 
         x_t = t * x_0 + (1 - t) * x_1
         denoiser_pred = net(x_t, t.flatten())
