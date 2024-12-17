@@ -2,19 +2,24 @@ import dataset
 from model import FMPrecond, FMLoss
 from network import EDMPrecond
 import torch
+import numpy as np
 from training import train
 from utils import get_device
-
+import random
 IMG_RES = 32
 
 
 def run_train(params):
+    torch.manual_seed(228)
+    np.random.seed(228)
+    random.seed(228)
     model = FMPrecond(EDMPrecond(IMG_RES, 3, use_fp16=params["use_fp16"])).to(get_device())
     optimizer = None
     if params['optimizer'] == 'sgd':
-        optimizer = torch.optim.SGD(model.parameters(), lr = params['lr'])
+        optimizer = torch.optim.SGD(model.parameters(), lr=params['lr'])
     else:
-        optimizer = torch.optim.Adam(model.parameters(), lr = params['lr'])
+        optimizer = torch.optim.Adam(model.parameters(), lr=params['lr'])
+
     sampling_params = {
         'device': get_device(),
         'sigma_min': 0.02,
