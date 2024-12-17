@@ -20,6 +20,8 @@ def get_dataloader(batch_size):
 
 class ColoredMNIST(datasets.MNIST):
     def __init__(self, **kwargs):
+        self.my_transform = kwargs["transform"]
+        kwargs["transform"] = None
         super().__init__(**kwargs)
         self.hues = 360 * torch.rand(super().__len__())
 
@@ -60,7 +62,7 @@ class ColoredMNIST(datasets.MNIST):
             colored_image[1] = img_min
             colored_image[2] = img_dec
 
-        return colored_image
+        return self.my_transform(colored_image)
 
     def __getitem__(self, idx):
         img, label = super().__getitem__(idx)
