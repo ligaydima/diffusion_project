@@ -6,6 +6,7 @@ import numpy as np
 from training import train
 from utils import get_device
 import random
+
 IMG_RES = 32
 
 
@@ -13,7 +14,9 @@ def run_train(params):
     torch.manual_seed(228)
     np.random.seed(228)
     random.seed(228)
-    model = FMPrecond(EDMPrecond(IMG_RES, 3, use_fp16=params["use_fp16"])).to(get_device())
+    model = FMPrecond(EDMPrecond(IMG_RES, 3, use_fp16=params["use_fp16"], model_channels=params["model_channels"])).to(
+        get_device())
+    print("number of params", sum([p.numel() for p in model.parameters()]))
     optimizer = None
     if params['optimizer'] == 'sgd':
         optimizer = torch.optim.SGD(model.parameters(), lr=params['lr'])
@@ -30,6 +33,11 @@ def run_train(params):
         'stochastic': False,
     }
     loss_fn = FMLoss(sampling_params, params["batch_size"], distr='logit', use_OT=params["use_OT"])
-
-    model, loss_log, grad_log = train(model, optimizer, dataset.get_dataloader(params["batch_size"]), loss_fn, params["n_epochs"],
-                                      sampling_params, params["checkpoint_dir"], eval_every=params["eval_every"], save_every=params["save_every"])
+    dataloader = None
+    if params["use_mnist"]:
+        dataloader = dataset.get_dataloader_mnist(params["batch_size"])
+    else:
+        dataloader = dataset.get_dataloader(params["batch_size"])
+    model, loss_log, grad_log = train(model, optimizer, dataloader, loss_fn, params["n_epochs"],
+                                      sampling_params, params["checkpoint_dir"], eval_every=params["eval_every"],
+                                      save_every=params["save_every"])
