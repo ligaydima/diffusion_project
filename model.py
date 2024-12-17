@@ -39,37 +39,31 @@ class FMLoss:
         x_0 = noise
         x_1 = images
         if self.use_OT:
-            # TODO OT mode
             x_0_tmp = x_0.unsqueeze(1)
             x_1_tmp = x_1.unsqueeze(0)
             cost = ((x_0_tmp - x_1_tmp) ** 2).sum(dim = (2,3,4))
-            b = torch.ones(self.batch_dim) / self.batch_dim
-            # distr = torch.distributions.normal.Normal(torch.zeros([x_0.shape[1], x_0.shape[2], x_0.shape[3]]), torch.tensor())
-            distr = torch.zeros(self.batch_dim)
-            for i in range(self.batch_dim):
-                for j in range(x_0.shape[1]):
-                    for a in range(x_0.shape[2]):
-                        for b in range(x_0.shape[3]):
-                            distr[i] += torch.distributions.normal.Normal(torch.tensor([0.0]), torch.tensor([1.0])).log_prob(x_0[i,j,a,b])
-            distr = torch.nn.Softmax(distr)
-            plan = ot.emd(distr, b, cost)
+            B = torch.ones(images.shape[0]).to('cuda') / images.shape[0]
+            distr = torch.zeros(self.batch_dim).to('cuda')
+            distr -= (x_0**2).sum(dim = (1,2,3))
+            distr /= 2
+            distr = torch.nn.Softmax()(distr)
+            plan = ot.emd(distr, B, cost)
             flattened_plan = plan.flatten()
-            sampled_id = torch.multinomial(flattened_plan, num_samples = self.batch_dim).item()
+            sampled_id = torch.multinomial(flattened_plan, num_samples = images.shape[0])
             row_index = sampled_id // plan.shape[1]
             col_index = sampled_id % plan.shape[1]
             x_0 = x_0[row_index]
             x_1 = x_1[col_index]
-            # pass
         t = self.sample_t(self.batch_dim, device=images.device)[:, None, None, None]
 
         x_t = t * x_0 + (1 - t) * x_1
         denoiser_pred = net(x_t, t.flatten())
         loss = ((denoiser_pred - images) ** 2).mean()
         log_imgs = {
-            'noise': noise.cpu().detach(),
-            'images': images.cpu().detach(),
-            'x_t': x_t.cpu().detach(),
-            'denoised': denoiser_pred.cpu().detach()
+            'noise': noise.cuda().detach(),
+            'images': images.cuda().detach(),
+            'x_t': x_t.cuda().detach(),
+            'denoised': denoiser_pred.cuda().detach()
         }
 
         return loss, log_imgs
