@@ -15,12 +15,10 @@ def get_timesteps_diff(params):
 def get_timesteps_fm(params):
     sigmas = get_timesteps_diff(params)
     return 1 / (sigmas + 1)
-def sample_euler(model, noise, params, get_timesteps, class_labels=None, save_history=False, **model_kwargs):
+def sample_euler(model, noise, params, get_timesteps,  save_history=False, **model_kwargs):
     num_steps = params['num_steps']
     t_steps = get_timesteps(params)
     x = noise
-
-
     if save_history:
         vis_steps = params['vis_steps']
         x_history = [normalize(noise)]

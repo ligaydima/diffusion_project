@@ -8,6 +8,7 @@ run_config = {
     'save_every': 10000,
     'lr': 1e-4,
     'optimizer': 'adam',
-    'use_fp16': False
+    'use_fp16': False,
+    "model_channels": 96
 }
 run_train(run_config)
