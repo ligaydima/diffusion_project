@@ -38,27 +38,9 @@ class FMLoss:
         x_0 = noise
         x_1 = images
         if self.use_OT:
-<<<<<<< HEAD
-            x_0_tmp = x_0.unsqueeze(1)
-            x_1_tmp = x_1.unsqueeze(0)
-            cost = ((x_0_tmp - x_1_tmp) ** 2).sum(dim = (2,3,4))
-            B = torch.ones(images.shape[0]).to('cuda') / images.shape[0]
-            distr = torch.zeros(self.batch_dim).to('cuda')
-            distr -= (x_0**2).sum(dim = (1,2,3))
-            distr /= 2
-            distr = torch.nn.Softmax()(distr)
-            plan = ot.emd(distr, B, cost)
-            flattened_plan = plan.flatten()
-            sampled_id = torch.multinomial(flattened_plan, num_samples = images.shape[0])
-            row_index = sampled_id // plan.shape[1]
-            col_index = sampled_id % plan.shape[1]
-            x_0 = x_0[row_index]
-            x_1 = x_1[col_index]
-=======
             # TODO OT mode
             pass
->>>>>>> parent of 20f1273 (added OT mode)
-        t = self.sample_t(self.batch_dim, device=images.device)[:, None, None, None]
+        t = self.sample_t(images.shape[0], device=images.device)[:, None, None, None]
 
         x_t = t * x_0 + (1 - t) * x_1
         denoiser_pred = net(x_t, t.flatten())
