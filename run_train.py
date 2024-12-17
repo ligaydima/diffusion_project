@@ -9,7 +9,7 @@ IMG_RES = 32
 
 
 def run_train(params):
-    model = FMPrecond(EDMPrecond(IMG_RES, 3, use_fp16=True)).to(get_device())
+    model = FMPrecond(EDMPrecond(IMG_RES, 3, use_fp16=params["use_fp16"])).to(get_device())
     optimizer = None
     if params['optimizer'] == 'sgd':
         optimizer = torch.optim.SGD(model.parameters(), lr = params['lr'])
@@ -19,7 +19,7 @@ def run_train(params):
         'device': get_device(),
         'sigma_min': 0.02,
         'sigma_max': 80.0,
-        'num_steps': 20,
+        'num_steps': 50,
         'vis_steps': 10,
         'rho': 7.0,
         'stochastic': False,
