@@ -51,13 +51,12 @@ class FMLoss:
                 print("BUGG")
                 assert False
             probs = flattened_plan / flattened_plan.sum()
-            sample_ids = np.random.choice(np.arange(len(probs)), p=probs.cpu().numpy(), size=images.shape[0], replace=True)
+            sample_ids = torch.argsort(probs, descending=True)[:images.shape[0]]
             row_index, col_index = np.divmod(sample_ids, plan.shape[1])
             # sampled_id = torch.multinomial(flattened_plan, num_samples = images.shape[0], replacement = True)
             # row_index = sampled_id // plan.shape[1]
             # col_index = sampled_id % plan.shape[1]
             # print(row_index, col_index)
-            
             x_0 = x_0[row_index]
             x_1 = x_1[col_index]
         t = self.sample_t(images.shape[0], device=images.device)[:, None, None, None]
