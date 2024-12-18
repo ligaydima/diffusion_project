@@ -63,7 +63,7 @@ class FMLoss:
 
         x_t = t * x_1 + (1 - t) * x_0
         denoiser_pred = net(x_t, t.flatten())
-        loss = ((denoiser_pred - images) ** 2).mean()
+        loss = ((denoiser_pred - x_1) ** 2).mean()
         log_imgs = {
             'noise': noise.cpu().detach(),
             'images': images.cpu().detach(),
