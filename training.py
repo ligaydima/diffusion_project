@@ -50,7 +50,8 @@ def train(model: FMPrecond, opt, train_dataloader, loss_fn: torch.nn.Module, n_e
                     "loss": loss_history[-1],
                     "grad_norm": grad_history[-1],
                     "smooth_loss": smoothened_loss,
-                    "smooth_grad": smoothened_grad
+                    "smooth_grad": smoothened_grad,
+                    "loss_variance": log_imgs["loss_variance"]
                 })
 
     return model, loss_history, grad_history

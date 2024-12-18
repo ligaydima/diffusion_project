@@ -65,12 +65,14 @@ class FMLoss:
 
         x_t = t * x_1 + (1 - t) * x_0
         denoiser_pred = net(x_t, t.flatten())
-        loss = ((denoiser_pred - x_1) ** 2).mean()
+        loss_batch = torch.mean(((denoiser_pred - x_1) ** 2), dim=(1, 2, 3))
+        loss = loss_batch.mean()
         log_imgs = {
             'noise': noise.cpu().detach(),
             'images': images.cpu().detach(),
             'x_t': x_t.cpu().detach(),
-            'denoised': denoiser_pred.cpu().detach()
+            'denoised': denoiser_pred.cpu().detach(),
+            'loss_variance': loss_batch.var().cpu().detach()
         }
 
         return loss, log_imgs
