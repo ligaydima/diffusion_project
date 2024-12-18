@@ -31,7 +31,7 @@ def train(model, opt, train_dataloader, loss_fn, n_epochs, sampling_params, chec
                     clear_output(wait=True)
                     visualize_training(model, loss_history, grad_history, log_imgs, sampling_params)
 
-                if it % save_every == 0:
+                if it % save_every == 0 or it == len(train_dataloader) * n_epochs - 1:
                     torch.save(model.state_dict(), os.path.join('checkpoints', 'rec_%d.pth' % (it,)))
                 pbar.update(1)
                 pbar.set_description('Loss: %.4g' % loss.item())
