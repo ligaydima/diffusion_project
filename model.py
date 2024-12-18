@@ -49,7 +49,7 @@ class FMLoss:
             flattened_plan = plan.flatten()
             probs = flattened_plan / flattened_plan.sum()
             sample_ids = np.random.choice(np.arange(len(probs)), p=probs.cpu().numpy(), size=images.shape[0], replace=True)
-            row_index, col_index = np.divmod(sample_ids)
+            row_index, col_index = np.divmod(sample_ids, plan.shape[1])
             # sampled_id = torch.multinomial(flattened_plan, num_samples = images.shape[0], replacement = True)
             # row_index = sampled_id // plan.shape[1]
             # col_index = sampled_id % plan.shape[1]
