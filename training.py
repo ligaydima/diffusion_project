@@ -2,7 +2,7 @@ import os
 
 import torch
 from tqdm import tqdm
-
+import numpy as np
 from model import FMPrecond
 from utils import get_grad_norm, get_device
 from vis import visualize_training, send_samples_to_wandb
@@ -46,12 +46,14 @@ def train(model: FMPrecond, opt, train_dataloader, loss_fn: torch.nn.Module, n_e
                 it += 1
                 smoothened_loss = sum(loss_history[max(0, len(loss_history) - 100):]) / min(100, len(loss_history))
                 smoothened_grad = sum(grad_history[max(0, len(grad_history) - 100):]) / min(100, len(loss_history))
+                grad_variance = np.var(grad_history[max(0, len(grad_history) - 100):])
                 wandb.log({
                     "loss": loss_history[-1],
                     "grad_norm": grad_history[-1],
                     "smooth_loss": smoothened_loss,
                     "smooth_grad": smoothened_grad,
-                    "loss_variance": log_imgs["loss_variance"]
+                    "loss_variance": log_imgs["loss_variance"],
+                    "grad_variance": grad_variance,
                 })
 
     return model, loss_history, grad_history
