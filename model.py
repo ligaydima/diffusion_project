@@ -47,6 +47,9 @@ class FMLoss:
             distr = torch.ones(images.shape[0]).to(images.device) / images.shape[0]
             plan = ot.emd(distr, B, cost)
             flattened_plan = plan.flatten()
+            if torch.any(torch.isnan(flattened_plan)) or not torch.all(torch.isfinite(flattened_plan)):
+                print("BUGG")
+                assert False
             probs = flattened_plan / flattened_plan.sum()
             sample_ids = np.random.choice(np.arange(len(probs)), p=probs.cpu().numpy(), size=images.shape[0], replace=True)
             row_index, col_index = np.divmod(sample_ids, plan.shape[1])
