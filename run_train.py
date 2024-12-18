@@ -32,7 +32,7 @@ def run_train(params):
         'rho': 7.0,
         'stochastic': False,
     }
-    loss_fn = FMLoss(sampling_params, params["batch_size"], distr='logit', use_OT=params["use_OT"])
+    loss_fn = FMLoss(sampling_params, params["batch_size"], distr='rand', use_OT=params["use_OT"])
     dataloader = None
     if params["use_mnist"]:
         dataloader = dataset.get_dataloader_mnist(params["batch_size"])
