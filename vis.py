@@ -95,7 +95,7 @@ def send_samples_to_wandb(model, log_imgs, sampling_params, step):
     trajectory = trajectory.reshape(len(trajectory) // n_pictures_sampling, n_pictures_sampling,
                                     *trajectory.shape[-3:]).permute(1, 0, 2, 3, 4).reshape(-1, *trajectory.shape[-3:])
     images = trajectory[len(trajectory) // n_pictures_sampling - 1::len(trajectory) // n_pictures_sampling]
-    grid = torchvision.utils.make_grid(images, nrow=6).permute(1, 2, 0)
+    grid = torchvision.utils.make_grid(images, nrow=6).permute(1, 2, 0) * 255
     grid = grid.data.cpu().numpy().astype(np.uint8)
     wandb.log({"images/sample-images": wandb.Image(grid)}, step=step)
 
