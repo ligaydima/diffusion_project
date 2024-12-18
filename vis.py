@@ -1,3 +1,5 @@
+import torchvision
+import wandb
 from torchvision.utils import make_grid
 import matplotlib.pyplot as plt
 from sampling import sample_euler, get_timesteps_fm
@@ -82,6 +84,20 @@ def visualize_training(model, loss_history, grad_history, log_imgs, sampling_par
     ax['sampling'].imshow(img_grid.permute(1, 2, 0).detach().cpu())
     ax['sampling'].set_title('Семплы из модели', fontsize=17)
     plt.show()
+
+def send_samples_to_wandb(model, log_imgs, sampling_params, step):
+    n_pictures_sampling = 36
+    noise = torch.randn((n_pictures_sampling, log_imgs['images'].shape[1], log_imgs['images'].shape[2],
+                         log_imgs['images'].shape[3])).to(get_device())
+    _, trajectory = sample_euler(model, noise, sampling_params, get_timesteps_fm, save_history=True)
+
+    trajectory = torch.cat(trajectory, dim=0) * 0.5 + 0.5
+    trajectory = trajectory.reshape(len(trajectory) // n_pictures_sampling, n_pictures_sampling,
+                                    *trajectory.shape[-3:]).permute(1, 0, 2, 3, 4).reshape(-1, *trajectory.shape[-3:])
+    images = trajectory[len(trajectory) // n_pictures_sampling - 1::len(trajectory) // n_pictures_sampling]
+    grid = torchvision.utils.make_grid(images, nrow=6).permute(1, 2, 0)
+    grid = grid.data.numpy().astype(np.uint8)
+    wandb.log({"images/sample-images": wandb.Image(grid)}, step=step)
 
 
 def visualize_model_samples(model, params, get_timesteps, class_labels=None, title='Семплы из модели', diffusion=True,

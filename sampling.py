@@ -8,14 +8,18 @@ def get_timesteps_diff(params):
     sigma_min, sigma_max = params['sigma_min'], params['sigma_max']
     rho = params['rho']
     step_indices = torch.arange(num_steps, device=params['device'])
-    t_steps = (sigma_max ** (1 / rho) + step_indices / (num_steps) * (sigma_min ** (1 / rho) - sigma_max ** (1 / rho))) ** rho
-    t_steps = torch.cat([t_steps, torch.zeros_like(t_steps[:1])]) # t_N = 0
+    t_steps = (sigma_max ** (1 / rho) + step_indices / (num_steps) * (
+                sigma_min ** (1 / rho) - sigma_max ** (1 / rho))) ** rho
+    t_steps = torch.cat([t_steps, torch.zeros_like(t_steps[:1])])  # t_N = 0
     return t_steps
+
 
 def get_timesteps_fm(params):
     sigmas = get_timesteps_diff(params)
     return 1 / (sigmas + 1)
-def sample_euler(model, noise, params, get_timesteps,  save_history=False, **model_kwargs):
+
+
+def sample_euler(model, noise, params, get_timesteps, save_history=False, **model_kwargs):
     num_steps = params['num_steps']
     t_steps = get_timesteps(params)
     x = noise
