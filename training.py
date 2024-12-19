@@ -48,8 +48,8 @@ def train(model: FMPrecond, opt, train_dataloader, loss_fn: FMLoss, n_epochs: in
                         "grad_var_long": grad_var,
                         "loss_var_long": loss_var,
                     }, step=it)
-                if it % 500 == 0 and log_fid:
-                    cur_fid = calc_fid(model, "cifar10-32x32.npz", "generated_images", sampling_params, batch_size=128, num_samples=10000)
+                if it % 2000 == 0 and log_fid:
+                    cur_fid = calc_fid(model, "cifar10-32x32.npz", "generated_images", sampling_params, batch_size=128, num_samples=128)
                     wandb.log({"fid": cur_fid}, step=it)
                 opt.zero_grad()
                 loss, log_imgs = loss_fn(model, x)
