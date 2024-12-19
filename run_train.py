@@ -22,7 +22,8 @@ def run_train(params):
         optimizer = torch.optim.SGD(model.parameters(), lr=params['lr'])
     else:
         optimizer = torch.optim.Adam(model.parameters(), lr=params['lr'])
-
+    if params['checkpoint'] != 'none':
+        model.load_state_dict(torch.load(params['checkpoint']))
     sampling_params = {
         'device': get_device(),
         'sigma_min': 0.02,
