@@ -19,6 +19,7 @@ import shutil
 import dnnlib
 from sampling import sample_euler, get_timesteps_fm
 from PIL import Image
+from utils import get_device
 
 # from training import dataset
 
