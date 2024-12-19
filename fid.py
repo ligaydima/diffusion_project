@@ -14,12 +14,13 @@ import pickle
 import numpy as np
 import scipy.linalg
 import torch
-# import dnnlib.util
+import edm_dataset
 import shutil
+import edm_utils
 from sampling import sample_euler, get_timesteps_fm
 from PIL import Image
 
-from training import dataset
+# from training import dataset
 
 #----------------------------------------------------------------------------
 
@@ -33,12 +34,12 @@ def calculate_inception_stats(
     detector_url = 'https://api.ngc.nvidia.com/v2/models/nvidia/research/stylegan3/versions/1/files/metrics/inception-2015-12-05.pkl'
     detector_kwargs = dict(return_features=True)
     feature_dim = 2048
-    with dnnlib.util.open_url(detector_url, verbose=True) as f:
+    with edm_utils.open_url(detector_url, verbose=True) as f:
         detector_net = pickle.load(f).to(device)
 
     # List images.
     print(f'Loading images from "{image_path}"...')
-    dataset_obj = dataset.ImageFolderDataset(path=image_path, max_size=num_expected, random_seed=seed)
+    dataset_obj = edm_dataset.ImageFolderDataset(path=image_path, max_size=num_expected, random_seed=seed)
     if num_expected is not None and len(dataset_obj) < num_expected:
         raise click.ClickException(f'Found {len(dataset_obj)} images, but expected at least {num_expected}')
     if len(dataset_obj) < 2:
@@ -110,7 +111,7 @@ def save_model_samples(name, model, params, batch_size, num_samples, **model_kwa
     os.makedirs(name, exist_ok=True)
     count = 0
 
-    with tqdm(total= num_samples) as pbar:
+    with tqdm.tqdm(total= num_samples) as pbar:
         while count < num_samples:
             cur_batch_size = min(num_samples - count, batch_size)
             noise = torch.randn(cur_batch_size, 3, 32, 32).cuda()
@@ -140,7 +141,7 @@ def calc(image_path, ref_path, num_expected, seed, batch):
     print(f'Loading dataset reference statistics from "{ref_path}"...')
     ref = None
 
-    with dnnlib.util.open_url(ref_path) as f:
+    with edm_utils.open_url(ref_path) as f:
         ref = dict(np.load(f))
 
     mu, sigma = calculate_inception_stats(image_path=image_path, num_expected=num_expected, seed=seed, max_batch_size=batch)
