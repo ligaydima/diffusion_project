@@ -110,11 +110,11 @@ def save_model_samples(name, model, params, batch_size, num_samples, **model_kwa
 
     os.makedirs(name, exist_ok=True)
     count = 0
-
     with tqdm.tqdm(total= num_samples) as pbar:
         while count < num_samples:
             cur_batch_size = min(num_samples - count, batch_size)
-            noise = torch.randn(cur_batch_size, 3, 32, 32).to(model.device())
+            
+            noise = torch.randn(cur_batch_size, 3, 32, 32).to(get_device())
 
             out, trajectory = sample_euler(model, noise, params, get_timesteps_fm, **model_kwargs)
             out = (out * 127.5 + 128).clip(0, 255).to(torch.uint8).permute(0, 2, 3, 1).cpu().numpy()
@@ -157,7 +157,7 @@ def calc_fid(model, ref_path, images_folder, sampling_params, batch_size=128, nu
     # mu_cifar, sigma_cifar = calculate_inception_stats('data/cifar-10-python.tar.gz', num_expected=  num_samples, seed=228, max_batch_size=batch_size)
     save_model_samples(images_folder, model, sampling_params, batch_size=batch_size, num_samples=num_samples)
     mu, sigma = calculate_inception_stats(image_path=images_folder, num_expected=num_samples, seed=228,
-                                          max_batch_size=batch_size)
+                                          max_batch_size=batch_size, device=get_device())
     fid = calculate_fid_from_inception_stats(mu, sigma, mu_cifar, sigma_cifar)
     return fid
     return calc(path, 'data/')

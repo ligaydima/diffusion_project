@@ -3,7 +3,9 @@ import os
 import torch
 from tqdm import tqdm
 import numpy as np
-from model import FMPrecond
+
+from fid import calc_fid
+from model import FMPrecond, FMLoss
 from utils import get_grad_norm, get_device
 from vis import visualize_training, send_samples_to_wandb
 from IPython.display import clear_output
@@ -28,8 +30,8 @@ def estimate_variances(model, opt, loss_fn, x):
         losses[i] = loss
     return losses.var(), res_grads.var(dim=1).mean()
 
-def train(model: FMPrecond, opt, train_dataloader, loss_fn: torch.nn.Module, n_epochs: int, sampling_params, checkpoint_dir: str, eval_every=100,
-          save_every=1000):
+def train(model: FMPrecond, opt, train_dataloader, loss_fn: FMLoss, n_epochs: int, sampling_params, checkpoint_dir: str, eval_every=100,
+          save_every=1000, log_fid=False, log_variances_long=False):
     loss_history = []
     grad_history = []
     device = get_device()
@@ -40,12 +42,15 @@ def train(model: FMPrecond, opt, train_dataloader, loss_fn: torch.nn.Module, n_e
         for epoch in range(n_epochs):
             for batch in train_dataloader:
                 x = batch[0].to(device)
-                if it % 100 == 0:
+                if it % 500 == 0 and log_variances_long:
                     loss_var, grad_var = estimate_variances(model, opt, loss_fn, x)
                     wandb.log({
                         "grad_var_long": grad_var,
                         "loss_var_long": loss_var,
                     }, step=it)
+                if it % 500 == 0 and log_fid:
+                    cur_fid = calc_fid(model, "cifar10-32x32.npz", "generated_images", sampling_params, batch_size=128, num_samples=10000)
+                    wandb.log({"fid": cur_fid}, step=it)
                 opt.zero_grad()
                 loss, log_imgs = loss_fn(model, x)
                 loss.backward()

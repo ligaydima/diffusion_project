@@ -41,4 +41,4 @@ def run_train(params):
         dataloader = dataset.get_dataloader(params["batch_size"])
     model, loss_log, grad_log = train(model, optimizer, dataloader, loss_fn, params["n_epochs"],
                                       sampling_params, params["checkpoint_dir"], eval_every=params["eval_every"],
-                                      save_every=params["save_every"])
+                                      save_every=params["save_every"], log_fid=params["log_fid"], log_variances_long=params["log_variances_long"])
