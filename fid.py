@@ -15,6 +15,10 @@ import numpy as np
 import scipy.linalg
 import torch
 import dnnlib
+import shutil
+from sampling import sample_euler, get_timesteps_fm
+from PIL import Image
+
 from training import dataset
 
 #----------------------------------------------------------------------------
@@ -98,6 +102,31 @@ def main():
 
 #----------------------------------------------------------------------------
 
+
+def save_model_samples(name, model, params, batch_size, num_samples, **model_kwargs):
+    if os.path.exists(name):
+        shutil.rmtree(name)
+
+    os.makedirs(name, exist_ok=True)
+    count = 0
+
+    with tqdm(total= num_samples) as pbar:
+        while count < num_samples:
+            cur_batch_size = min(num_samples - count, batch_size)
+            noise = torch.randn(cur_batch_size, 3, 32, 32).cuda()
+
+            out, trajectory = sample_euler(model, noise, params, get_timesteps_fm, **model_kwargs)
+            out = (out * 127.5 + 128).clip(0, 255).to(torch.uint8).permute(0, 2, 3, 1).cpu().numpy()
+            for i in range(out.shape[0]):
+                img = Image.fromarray(out[i])
+                n_digits = len(str(count))
+                img_name = (6 - n_digits) * '0' + str(count) + '.png'
+                img.save(os.path.join(name, img_name))
+                count += 1
+                pbar.update(1)
+                pbar.set_description('%d images saved' % (count,))
+
+
 @main.command()
 @click.option('--images', 'image_path', help='Path to the images', metavar='PATH|ZIP',              type=str, required=True)
 @click.option('--ref', 'ref_path',      help='Dataset reference statistics ', metavar='NPZ|URL',    type=str, required=True)
@@ -116,7 +145,15 @@ def calc(image_path, ref_path, num_expected, seed, batch):
 
     mu, sigma = calculate_inception_stats(image_path=image_path, num_expected=num_expected, seed=seed, max_batch_size=batch)
     fid = calculate_fid_from_inception_stats(mu, sigma, ref['mu'], ref['sigma'])
-    print(f'{fid:g}')
+    return fid
+
+def calc_fid(model, path, sampling_params, batch_size = 128, num_samples = 10000):
+    save_model_samples(path, model, sampling_params, batch_size = batch_size, num_samples = num_samples)
+    mu, sigma = calculate_inception_stats(image_path = path, num_expected = num_samples, seed=228, max_batch_size= batch_size)
+    mu_cifar, sigma_cifar = calculate_inception_stats('data/cifar-10-batches-py/data_batch_1', num_expected=  num_samples, seed=228, max_batch_size=batch_size)
+    fid = calculate_fid_from_inception_stats(mu, sigma, mu_cifar, sigma_cifar)
+    return fid
+    return calc(path, 'data/')
 
 #----------------------------------------------------------------------------
 
@@ -137,3 +174,4 @@ def ref(dataset_path, dest_path, batch):
     np.savez(dest_path, mu=mu, sigma=sigma)
 
     print('Done.')
+
