@@ -148,10 +148,16 @@ def calc(image_path, ref_path, num_expected, seed, batch):
     fid = calculate_fid_from_inception_stats(mu, sigma, ref['mu'], ref['sigma'])
     return fid
 
-def calc_fid(model, path, sampling_params, batch_size = 128, num_samples = 10000):
-    mu_cifar, sigma_cifar = calculate_inception_stats('data/cifar-10-python.tar.gz', num_expected=  num_samples, seed=228, max_batch_size=batch_size)
-    save_model_samples(path, model, sampling_params, batch_size = batch_size, num_samples = num_samples)
-    mu, sigma = calculate_inception_stats(image_path = path, num_expected = num_samples, seed=228, max_batch_size= batch_size)
+
+def calc_fid(model, ref_path, images_folder, sampling_params, batch_size=128, num_samples=10000):
+    ref = None
+    with dnnlib.util.open_url(ref_path) as f:
+        ref = dict(np.load(f))
+    mu_cifar, sigma_cifar = ref['mu'], ref['sigma']
+    # mu_cifar, sigma_cifar = calculate_inception_stats('data/cifar-10-python.tar.gz', num_expected=  num_samples, seed=228, max_batch_size=batch_size)
+    save_model_samples(images_folder, model, sampling_params, batch_size=batch_size, num_samples=num_samples)
+    mu, sigma = calculate_inception_stats(image_path=images_folder, num_expected=num_samples, seed=228,
+                                          max_batch_size=batch_size)
     fid = calculate_fid_from_inception_stats(mu, sigma, mu_cifar, sigma_cifar)
     return fid
     return calc(path, 'data/')
