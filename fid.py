@@ -16,7 +16,7 @@ import scipy.linalg
 import torch
 import edm_dataset
 import shutil
-import edm_utils
+import dnnlib
 from sampling import sample_euler, get_timesteps_fm
 from PIL import Image
 
@@ -34,8 +34,8 @@ def calculate_inception_stats(
     detector_url = 'https://api.ngc.nvidia.com/v2/models/nvidia/research/stylegan3/versions/1/files/metrics/inception-2015-12-05.pkl'
     detector_kwargs = dict(return_features=True)
     feature_dim = 2048
-    with edm_utils.open_url(detector_url, verbose=True) as f:
-        detector_net = pickle.load(f).to(device)
+    with dnnlib.util.open_url(detector_url, verbose=True) as f:
+        detector_net = pickle.load(f).to('cpu')
 
     # List images.
     print(f'Loading images from "{image_path}"...')
@@ -114,7 +114,7 @@ def save_model_samples(name, model, params, batch_size, num_samples, **model_kwa
     with tqdm.tqdm(total= num_samples) as pbar:
         while count < num_samples:
             cur_batch_size = min(num_samples - count, batch_size)
-            noise = torch.randn(cur_batch_size, 3, 32, 32).cuda()
+            noise = torch.randn(cur_batch_size, 3, 32, 32).to(model.device())
 
             out, trajectory = sample_euler(model, noise, params, get_timesteps_fm, **model_kwargs)
             out = (out * 127.5 + 128).clip(0, 255).to(torch.uint8).permute(0, 2, 3, 1).cpu().numpy()
@@ -141,7 +141,7 @@ def calc(image_path, ref_path, num_expected, seed, batch):
     print(f'Loading dataset reference statistics from "{ref_path}"...')
     ref = None
 
-    with edm_utils.open_url(ref_path) as f:
+    with dnnlib.util.open_url(ref_path) as f:
         ref = dict(np.load(f))
 
     mu, sigma = calculate_inception_stats(image_path=image_path, num_expected=num_expected, seed=seed, max_batch_size=batch)
@@ -149,9 +149,9 @@ def calc(image_path, ref_path, num_expected, seed, batch):
     return fid
 
 def calc_fid(model, path, sampling_params, batch_size = 128, num_samples = 10000):
+    mu_cifar, sigma_cifar = calculate_inception_stats('data/cifar-10-python.tar.gz', num_expected=  num_samples, seed=228, max_batch_size=batch_size)
     save_model_samples(path, model, sampling_params, batch_size = batch_size, num_samples = num_samples)
     mu, sigma = calculate_inception_stats(image_path = path, num_expected = num_samples, seed=228, max_batch_size= batch_size)
-    mu_cifar, sigma_cifar = calculate_inception_stats('data/cifar-10-batches-py/data_batch_1', num_expected=  num_samples, seed=228, max_batch_size=batch_size)
     fid = calculate_fid_from_inception_stats(mu, sigma, mu_cifar, sigma_cifar)
     return fid
     return calc(path, 'data/')

@@ -12,8 +12,9 @@ import numpy as np
 import zipfile
 import PIL.Image
 import json
+import tarfile
 import torch
-import edm_utils
+import dnnlib.util
 
 try:
     import pyspng
@@ -111,7 +112,7 @@ class Dataset(torch.utils.data.Dataset):
         return label.copy()
 
     def get_details(self, idx):
-        d = edm_utils.EasyDict()
+        d = dnnlib.util.EasyDict()
         d.raw_idx = int(self._raw_idx[idx])
         d.xflip = (int(self._xflip[idx]) != 0)
         d.raw_label = self._get_raw_labels()[d.raw_idx].copy()
@@ -180,7 +181,12 @@ class ImageFolderDataset(Dataset):
         elif self._file_ext(self._path) == '.zip':
             self._type = 'zip'
             self._all_fnames = set(self._get_zipfile().namelist())
+        elif self._file_ext(self._path) == '.gz':
+            self._type = 'gz'
+            self._all_fnames = set(self._get_zipfile().namelist())
+            
         else:
+            print(self._file_ext(self._path))
             raise IOError('Path must point to a directory or zip')
 
         PIL.Image.init()
@@ -199,9 +205,12 @@ class ImageFolderDataset(Dataset):
         return os.path.splitext(fname)[1].lower()
 
     def _get_zipfile(self):
-        assert self._type == 'zip'
-        if self._zipfile is None:
+        # assert self._type == 'zip'
+        
+        if self._type == 'zip' and self._zipfile is None:
             self._zipfile = zipfile.ZipFile(self._path)
+        elif self._type == 'gz' and self._zipfile is None:
+            self._zipfile = tarfile.TarFile(self._path,mode = 'r:gz')
         return self._zipfile
 
     def _open_file(self, fname):
