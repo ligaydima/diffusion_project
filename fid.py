@@ -125,8 +125,8 @@ def save_model_samples(name, model, params, batch_size, num_samples, **model_kwa
                 img_name = (6 - n_digits) * '0' + str(count) + '.png'
                 img.save(os.path.join(name, img_name))
                 count += 1
-                pbar.update(1)
-                pbar.set_description('%d images saved' % (count,))
+            pbar.update(out.shape[0])
+            pbar.set_description('%d images saved' % (count,))
 
 
 @main.command()
