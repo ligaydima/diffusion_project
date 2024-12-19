@@ -47,10 +47,6 @@ class FMLoss:
             distr = torch.ones(images.shape[0]).to(images.device) / images.shape[0]
             plan = ot.emd(distr, B, cost)
             flattened_plan = plan.flatten()
-            if torch.any(torch.isnan(flattened_plan)) or not torch.all(torch.isfinite(flattened_plan)):
-                print("BUGG")
-                assert False
-            probs = flattened_plan / flattened_plan.sum()
             # sample_ids = torch.argsort(probs, descending=True)[:images.shape[0]]
             # row_index, col_index = np.divmod(sample_ids, plan.shape[1])
             sampled_id = torch.multinomial(flattened_plan, num_samples = images.shape[0], replacement = True)
@@ -62,7 +58,7 @@ class FMLoss:
             x_0 = x_0[row_index]
             x_1 = x_1[col_index]
         t = self.sample_t(images.shape[0], device=images.device)[:, None, None, None]
-
+        t = torch.clip(t, 0.001, 0.999)
         x_t = t * x_1 + (1 - t) * x_0
         denoiser_pred = net(x_t, t.flatten())
         loss_batch = torch.mean(((denoiser_pred - x_1) ** 2), dim=(1, 2, 3))
