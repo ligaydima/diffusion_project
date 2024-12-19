@@ -14,7 +14,7 @@ import pickle
 import numpy as np
 import scipy.linalg
 import torch
-import dnnlib
+import dnnlib.util
 import shutil
 from sampling import sample_euler, get_timesteps_fm
 from PIL import Image
