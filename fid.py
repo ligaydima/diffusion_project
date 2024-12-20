@@ -36,7 +36,7 @@ def calculate_inception_stats(
     detector_kwargs = dict(return_features=True)
     feature_dim = 2048
     with dnnlib.util.open_url(detector_url, verbose=True) as f:
-        detector_net = pickle.load(f).to('cpu')
+        detector_net = pickle.load(f).to(device)
 
     # List images.
     print(f'Loading images from "{image_path}"...')
