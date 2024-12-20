@@ -28,7 +28,7 @@ def estimate_variances(model, opt, loss_fn, x):
             res_grads = torch.zeros((NUM_RUNS, grad_vector.shape[0]))
         res_grads[i] = grad_vector
         losses[i] = loss
-    return losses.var(), res_grads.var(dim=1).mean()
+    return losses.var(), res_grads.var(dim=1).sum()
 
 def train(model: FMPrecond, opt, train_dataloader, loss_fn: FMLoss, n_epochs: int, sampling_params, checkpoint_dir: str, eval_every=100,
           save_every=1000, log_fid=False, log_variances_long=False):
@@ -49,7 +49,7 @@ def train(model: FMPrecond, opt, train_dataloader, loss_fn: FMLoss, n_epochs: in
                         "loss_var_long": loss_var,
                     }, step=it)
                 if it % 2000 == 0 and log_fid:
-                    cur_fid = calc_fid(model, "cifar10-32x32.npz", "generated_images", sampling_params, batch_size=128, num_samples=128)
+                    cur_fid = calc_fid(model, "cifar10-32x32.npz", "generated_images", sampling_params, batch_size=128, num_samples=10000)
                     wandb.log({"fid": cur_fid}, step=it)
                 opt.zero_grad()
                 loss, log_imgs = loss_fn(model, x)
