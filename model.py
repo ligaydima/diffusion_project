@@ -47,11 +47,11 @@ class FMLoss:
             distr = torch.ones(images.shape[0]).to(images.device) / images.shape[0]
             plan = ot.emd(distr, B, cost)
             flattened_plan = plan.flatten()
-            # sample_ids = torch.argsort(probs, descending=True)[:images.shape[0]]
-            # row_index, col_index = np.divmod(sample_ids, plan.shape[1])
-            sampled_id = torch.multinomial(flattened_plan, num_samples = images.shape[0], replacement = True)
-            row_index = sampled_id // plan.shape[1]
-            col_index = sampled_id % plan.shape[1]
+            sample_ids = torch.argsort(flattened_plan, descending=True)[:images.shape[0]]
+            row_index, col_index = np.divmod(sample_ids, plan.shape[1])
+            # sampled_id = torch.multinomial(flattened_plan, num_samples = images.shape[0], replacement = True)
+            # row_index = sampled_id // plan.shape[1]
+            # col_index = sampled_id % plan.shape[1]
             # print(row_index, col_index)
             # print(plan)
             # print(np.sum(plan))
