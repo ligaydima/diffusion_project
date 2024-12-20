@@ -11,9 +11,12 @@ IMG_RES = 32
 
 
 def run_train(params):
-    torch.manual_seed(228)
-    np.random.seed(228)
-    random.seed(228)
+    seed = 228
+    if 'seed' in params.keys():
+        seed = params['seed']
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    random.seed(seed)
     model = FMPrecond(EDMPrecond(IMG_RES, 3, use_fp16=params["use_fp16"], model_channels=params["model_channels"])).to(
         get_device())
     print("number of params", sum([p.numel() for p in model.parameters()]))
