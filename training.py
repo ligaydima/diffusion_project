@@ -28,7 +28,9 @@ def estimate_variances(model, opt, loss_fn, x):
             res_grads = torch.zeros((NUM_RUNS, grad_vector.shape[0]))
         res_grads[i] = grad_vector
         losses[i] = loss
-    return losses.var(), res_grads.var(dim=1).sum()
+    mean_grad_vector = res_grads.mean(dim=0).reshape(1, -1)
+
+    return losses.var().item(), res_grads.var(dim=1).sum().item(), ((res_grads - mean_grad_vector)**2).sum(dim=1).mean().item()
 
 def train(model: FMPrecond, opt, train_dataloader, loss_fn: FMLoss, n_epochs: int, sampling_params, checkpoint_dir: str, eval_every=100,
           save_every=1000, log_fid=False, log_variances_long=False):
@@ -43,10 +45,11 @@ def train(model: FMPrecond, opt, train_dataloader, loss_fn: FMLoss, n_epochs: in
             for batch in train_dataloader:
                 x = batch[0].to(device)
                 if it % 500 == 0 and log_variances_long:
-                    loss_var, grad_var = estimate_variances(model, opt, loss_fn, x)
+                    loss_var, grad_var, grad_var2 = estimate_variances(model, opt, loss_fn, x)
                     wandb.log({
                         "grad_var_long": grad_var,
                         "loss_var_long": loss_var,
+                        "grad_var_long2": grad_var2
                     }, step=it)
                 if it % 2000 == 0 and log_fid:
                     model.eval()
