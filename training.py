@@ -49,8 +49,10 @@ def train(model: FMPrecond, opt, train_dataloader, loss_fn: FMLoss, n_epochs: in
                         "loss_var_long": loss_var,
                     }, step=it)
                 if it % 2000 == 0 and log_fid:
+                    model.eval()
                     cur_fid = calc_fid(model, "cifar10-32x32.npz", "generated_images", sampling_params, batch_size=128, num_samples=10000)
                     wandb.log({"fid": cur_fid}, step=it)
+                    model.train()
                 opt.zero_grad()
                 loss, log_imgs = loss_fn(model, x)
                 loss.backward()
@@ -70,7 +72,6 @@ def train(model: FMPrecond, opt, train_dataloader, loss_fn: FMLoss, n_epochs: in
                     model.eval()
                     send_samples_to_wandb(model, log_imgs, sampling_params, it)
                     model.train()
-
 
                 pbar.update(1)
                 pbar.set_description('Loss: %.4g' % loss.item())
