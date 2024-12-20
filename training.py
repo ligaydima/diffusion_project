@@ -10,7 +10,7 @@ from utils import get_grad_norm, get_device
 from vis import visualize_training, send_samples_to_wandb
 from IPython.display import clear_output
 import wandb
-NUM_RUNS = 100
+NUM_RUNS = 70
 def estimate_variances(model, opt, loss_fn, x):
     losses = torch.zeros(NUM_RUNS)
     res_grads = None
