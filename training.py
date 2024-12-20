@@ -28,7 +28,7 @@ def estimate_variances(model, opt, loss_fn, x):
             res_grads = torch.zeros((NUM_RUNS, grad_vector.shape[0]))
         res_grads[i] = grad_vector
         losses[i] = loss
-    mean_grad_vector = res_grads.mean(dim=0).reshape(1, -1)
+    mean_grad_vector = res_grads.mean(dim=0)
     ss = 0
     for i in range(res_grads.shape[0]):
         res_grads[i] -= mean_grad_vector
