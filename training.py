@@ -29,8 +29,12 @@ def estimate_variances(model, opt, loss_fn, x):
         res_grads[i] = grad_vector
         losses[i] = loss
     mean_grad_vector = res_grads.mean(dim=0).reshape(1, -1)
-
-    return losses.var().item(), res_grads.var(dim=1).sum().item(), ((res_grads - mean_grad_vector)**2).sum(dim=1).mean().item()
+    ss = 0
+    for i in range(res_grads.shape[0]):
+        res_grads[i] -= mean_grad_vector
+        ss += (res_grads[i]**2).sum().item()
+    ss /= res_grads.shape[0]
+    return losses.var().item(), res_grads.var(dim=1).sum().item(), ss
 
 def train(model: FMPrecond, opt, train_dataloader, loss_fn: FMLoss, n_epochs: int, sampling_params, checkpoint_dir: str, eval_every=100,
           save_every=1000, log_fid=False, log_variances_long=False):
