@@ -17,7 +17,11 @@ def run_train(params):
     torch.manual_seed(seed)
     np.random.seed(seed)
     random.seed(seed)
-    model = FMPrecond(EDMPrecond(IMG_RES, 3, use_fp16=params["use_fp16"], model_channels=params["model_channels"])).to(
+    model_params = {
+        "channel_mult": [1, 2, 2, 2],
+        "model_channels": params["model_channels"],
+    }
+    model = FMPrecond(EDMPrecond(IMG_RES, 3, use_fp16=params["use_fp16"], **model_params)).to(
         get_device())
     print("number of params", sum([p.numel() for p in model.parameters()]))
     optimizer = None
