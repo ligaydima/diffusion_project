@@ -42,3 +42,27 @@ def sample_euler(model, noise, params, get_timesteps, save_history=False, **mode
 
     return x, []
 
+
+def sample_euler_no_norm(model, noise, params, get_timesteps, save_history=False, **model_kwargs):
+    num_steps = params['num_steps']
+    t_steps = get_timesteps(params)
+    x = noise
+
+    if save_history:
+        vis_steps = params['vis_steps']
+        x_history = [noise]
+
+    with torch.no_grad():
+        for i in range(len(t_steps) - 1):
+            t_cur = t_steps[i]
+            t_next = t_steps[i + 1]
+            t_net = t_steps[i] * torch.ones(x.shape[0], device=params['device'])
+            x = x + model.velocity(x, t_net) * (t_next - t_cur)
+            if save_history:
+                x_history.append(x.view(-1, 3, *x.shape[2:]))
+
+    if save_history:
+        x_history = [x_history[0]] + x_history[::-(num_steps // (vis_steps - 2))][::-1] + [x_history[-1]]
+        return x, x_history
+
+    return x, []
